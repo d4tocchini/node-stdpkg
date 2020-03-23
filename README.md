@@ -1,10 +1,10 @@
 # stdpkg
 
-stdpkg consists of three distinct components:
+> **WARNING** under construction
 
-* the cli
-* the JS & C api
-* the package hierarchy
+* cli
+* api (currently JS & C)
+* package management
 
 ...
 

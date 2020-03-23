@@ -1,6 +1,6 @@
 
 
-require('./.npm.js');
+require('stdpkg/npm');
 
 pkg(module, function ({init, deps}) {
 

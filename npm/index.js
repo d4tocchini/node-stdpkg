@@ -1,3 +1,5 @@
+// /usr/local/lib/node_modules/npm/lib/install/flatten-tree.js
+
 const GLOBAL_DIR = '/usr/local/lib/node_modules'
 const LOG = console.log;
 const fs = require('fs');
@@ -81,7 +83,7 @@ function pkg(mod, cb) {
         ;
     }
     function _object_deassign(o, x) {
-        LOG({x})
+        LOG('_object_deassign()',{x})
         const depv = {}
         const depk = Object.keys(o);
         const depn = depk.length;
@@ -89,6 +91,7 @@ function pkg(mod, cb) {
             const k = depk[i];
             if (x[k])
                 continue
+            LOG(`   ${k}`)
             const v = o[k];
             depv[k] = v;
         }
@@ -118,6 +121,7 @@ function intercept_npm() {
 
     function pkg_process(pkg) {
         const { name } = pkg;
+        LOG('pkg_process ',{name})
         if (name === PKG_NAME) {
             ++PKG_PASS;
             let keys = Object.keys(DEPS)
@@ -128,7 +132,7 @@ function intercept_npm() {
                 _DEPS[k] = DEPS[k];
             }
             DEPS = _DEPS;
-            console.log({ DEPS })
+            // console.log({ DEPS })
             return
         }
         // if (PKG_PASS > 0)
@@ -166,6 +170,7 @@ function intercept_npm() {
         const flatter_deps = {}
         for (let i = 0; i < depn; i++) {
             const k = depk[i];
+
             if (PKG_PIN.has(k)) {
                 LOG('rm', k, deps[k]);
                 continue
@@ -198,16 +203,24 @@ function intercept_npm() {
 
 
     const create = Node.create = function (node, template, isNotTop) {
+        // if (node.__did_create__)
+        //     return node
+        // node.__did_create__ = true
         if (node && node.dependencies) {
             pkg_process(node);
             // LOG('node:create',{node, template, isNotTop})
             // if (node['bn.js'])
             //     LOG('node:create',{node, template, isNotTop})
         }
+        // else if (!Object.keys(node).length)
+        //     return node
+
+        // LOG({node,template,isNotTop})
         return _create(node, template, isNotTop);
     }
 
     var defaultTemplate = {
+        // __did_create__:true,
         package: {
             version: '',
             dependencies: {},
@@ -239,10 +252,11 @@ function intercept_npm() {
     }
 
     function _create(node, template, isNotTop) {
-        if (!template) template = defaultTemplate
+        if (!template) template = Object.assign({},defaultTemplate)
         Object.keys(template).forEach(function (key) {
             if (template[key] != null && typeof template[key] === 'object' && !(template[key] instanceof Array)) {
-                if (!node[key]) node[key] = {}
+                if (!node[key])
+                    node[key] = {}
                 return create(node[key], template[key], true)
             }
             if (node[key] != null) return
