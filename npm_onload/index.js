@@ -7,7 +7,7 @@ const fs = require('fs');
 const pkgs = [];
 const pkg_names = [];
 const pkg_dirs = [];
-const pkg_mods = [];
+// const pkg_mods = [];
 let   pkgc = 0
 const deps_inherited = {}
 
@@ -32,10 +32,10 @@ else {
     global.intercept_require = function(){};
 }
 
-function pkg(mod, cb) {
-    // console.dir(mod);
 
-    const dir = mod.path;
+function pkg(dir, cb) {
+    // console.dir(mod);
+    // const dir = mod.path;
 
     let did_mount = 0;;
     const dependencies = {};
@@ -49,7 +49,9 @@ function pkg(mod, cb) {
     cb({
         init,
         deps,
-        deps_dev,
+        dep,
+        devdeps,
+        devdep,
         deps_skip,
     });
 
@@ -58,15 +60,52 @@ function pkg(mod, cb) {
     Object.assign(deps_inherited, dependencies);
 
     let pkgi = pkgc++;
-    pkg_mods[pkgi] = mod;
+    // pkg_mods[pkgi] = mod;
     pkg_dirs[pkgi] = dir;
     pkg_names[pkgi] = json.name;
     return pkgs[pkgi] = json;
 
     function init(o) {Object.assign(json, o);}
-    function deps(o) {Object.assign(dependencies, o);}
-    function deps_dev(o) {Object.assign(devDependencies, o);}
+    function deps(o) {
+        for (let [k, v] of Object.entries(o))
+            dep(k, v)
+    }
+    function devdeps(o) {
+        for (let [k, v] of Object.entries(o))
+            devdep(k, v)
+    }
     function deps_skip(o) {Object.assign(dependencies_ex, o);}
+
+    function dep(k, v) {
+        if (is_ver_new(dependencies[k], v))
+            dependencies[k] = v
+    }
+    function devdep(k, v) {
+        if (is_ver_new(devDependencies[k], v))
+            devDependencies[k] = v
+    }
+
+    function is_ver_new(curr, v) {
+        if (!curr)
+            return true
+        if (curr.includes("/"))
+            return false
+        else if (v.includes("/"))
+            return true
+        const [c0, c1, c2] = curr.match(/(^\d)*\d+/g)
+        const [v0, v1, v2] = v.match(/(^\d)*\d+/g)
+        if (c0 === v0) {
+            if (c1 === v1) {
+                if (c2 < v2)
+                    return true
+            }
+            else if (c1 < v1)
+                return true
+        }
+        else if (c0 < v0)
+            return true
+        return false
+    }
 
     function write_json(path) {
         _finalize();

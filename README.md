@@ -37,3 +37,7 @@ replaces `.npmrc`, a bit of context:
 * [Configuring Your .npmrc for an Optimal Node.js Environment](https://nodesource.com/blog/configuring-your-npmrc-for-an-optimal-node-js-environment/)
 
 TODO...
+
+## Related
+
+[editions](https://editions.bevry.me/)
